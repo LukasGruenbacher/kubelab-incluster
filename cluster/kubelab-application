@@ -1,16 +1,23 @@
 apiVersion: argoproj.io/v1alpha1
-kind: Application
+kind: ApplicationSet
 metadata:
-  name: kubelab-application
-  namespace: argocd
+  name: guestbook
 spec:
-  destination:
-    namespace: default
-    server: https://kubernetes.default.svc
-  project: default
-  source:
-    path: apps/kubelab-app
-    repoURL: https://github.com/LukasGruenbacher/kubelab-incluster
-    targetRevision: HEAD
-  syncPolicy:
-    automated: {}   
+  generators:
+  - list:
+      elements:
+          - env: dev
+          - env: staging
+          - env: production
+  template:
+    metadata:
+      name: '{{cluster}}-guestbook'
+    spec:
+      project: my-project
+      source:
+        repoURL: https://github.com/LukasGruenbacher/kubelab-incluster
+        targetRevision: HEAD
+        path: guestbook/{{cluster}}
+      destination:
+        server: '{{url}}'
+        namespace: guestbook
